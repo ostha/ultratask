@@ -8,6 +8,6 @@ command: php artisan migrate
 
 command: php artisan db:seed
 
-New User ecord will be created:
+New User record will be created:
     email: admin@gmail.com
     password: password

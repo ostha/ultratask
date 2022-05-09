@@ -53,8 +53,7 @@ class ProductController extends Controller
      */
     public function store(Request $request)
     {
-        //
-        //  dd($request);
+        d($request);
 
         $this->validate($request, [
             'title' => 'required|min:3|max:255',
@@ -85,13 +84,8 @@ class ProductController extends Controller
                     }
                 }
 
-
                 $file = $request->file('featimg');
                 $fileName = substr(md5(microtime()), rand(0, 26), 4) . "_" . $file->getClientOriginalName();
-
-
-
-
 
                 $img = Image::make($file->getRealPath());
                 //  dd($img->width(),$img->height());
@@ -103,11 +97,6 @@ class ProductController extends Controller
                 } else {
                     $img->save($imagethumb_paths . $fileName);
                 }
-
-
-
-
-
 
                 //$request->file('img')->move($image_path, $fileName);
                 $request->file('featimg')->move($image_path, $fileName);
@@ -134,14 +123,13 @@ class ProductController extends Controller
         $data->save();
 
         $categories = $request->categories;
-        if($categories != null){
-            foreach($categories as $cat){
+        if ($categories != null) {
+            foreach ($categories as $cat) {
 
 
                 $compdatas['product_id'] = $data->id;
                 $compdatas['category_id'] = $cat;
                 $res = \DB::table('product_categories')->insertGetId($compdatas);
-       
             }
         }
         Session::flash('success', 'Succesfully done.');
@@ -171,7 +159,7 @@ class ProductController extends Controller
         $data = array();
         $res = Product::where('id', $id)->first();
         $data['categories'] = Category::get();
-$data['pcats'] = ProductCategory::where('product_id',$id)->get();
+        $data['pcats'] = ProductCategory::where('product_id', $id)->get();
         if ($res == null) {
             dd('sad');
         } else {
@@ -193,117 +181,110 @@ $data['pcats'] = ProductCategory::where('product_id',$id)->get();
         $this->validate($request, [
             'title' => 'required|min:3|max:255',
             'featimg' =>  'mimes:jpeg,bmp,png,gif,svg|max:2048',
-            'slug' => 'nullable|alpha_dash|unique:categories,slug,'.$id,
+            'slug' => 'nullable|alpha_dash|unique:categories,slug,' . $id,
             'status' => 'required|in:0,1'
 
 
 
         ]);
         $data = Product::find($id);
-        if($data == null || $request->parent_id == $id){
+        if ($data == null || $request->parent_id == $id) {
             abort(404);
             dd();
-          }
-    
+        }
+
         $data->title = $request->input('title');
         $data->description = $request->input('description');
         $data->status = $request->input('status');
-        if( $request->input('slug') == "" ){
-            if($data->title != $request->title){
-              $data->setSlugAttribute($request->input('title'));
-            }else if( $request->slug == "" ||  $request->slug == null ){}
-          }else if($request->input('slug') != "" ){
-              if($data->slug  == $request->input('slug')){
-              }else{
-              $data->setSlugAttribute($request->input('slug'));
+        if ($request->input('slug') == "") {
+            if ($data->title != $request->title) {
+                $data->setSlugAttribute($request->input('title'));
+            } else if ($request->slug == "" ||  $request->slug == null) {
             }
-          }
+        } else if ($request->input('slug') != "") {
+            if ($data->slug  == $request->input('slug')) {
+            } else {
+                $data->setSlugAttribute($request->input('slug'));
+            }
+        }
 
-          if($request->hasFile('featimg')){
+        if ($request->hasFile('featimg')) {
 
 
-            if( !empty($request->file('featimg') )){
-            
-            
-                        $nm = $data->featimg;
-                        $image_path = "assets/media/products/";
-                        $imagethumb_paths = "assets/media/products/thumbnails/";
-        
-            
-                $imgarrs= array();
-                $imgarrs = [$image_path,$imagethumb_paths,];
-            
-                foreach($imgarrs as $iarr){
-                  if(File::exists(public_path("/".$iarr.$nm))) {
-                    File::delete(public_path("/".$iarr.$nm));
-                  }
+            if (!empty($request->file('featimg'))) {
+
+
+                $nm = $data->featimg;
+                $image_path = "assets/media/products/";
+                $imagethumb_paths = "assets/media/products/thumbnails/";
+
+
+                $imgarrs = array();
+                $imgarrs = [$image_path, $imagethumb_paths,];
+
+                foreach ($imgarrs as $iarr) {
+                    if (File::exists(public_path("/" . $iarr . $nm))) {
+                        File::delete(public_path("/" . $iarr . $nm));
+                    }
                 }
-            
-            
-            $file = $request->file('featimg');
-            $fileName = substr(md5(microtime()),rand(0,26),4)."_".$file->getClientOriginalName();
-            
-            //$fileName = time() . '.' . $file->getClientOriginalExtension();
-            //$width = Image::make('public/foo.jpg')->width();
-            
-            
-            
-                   $img = Image::make($file->getRealPath());
-                 //  dd($img->width(),$img->height());
-                   if($img->width() > 100 || $img->height() > 100 ){
-            
-                     $img->resize(100, 100, function ($constraint) {
+
+
+                $file = $request->file('featimg');
+                $fileName = substr(md5(microtime()), rand(0, 26), 4) . "_" . $file->getClientOriginalName();
+
+                //$fileName = time() . '.' . $file->getClientOriginalExtension();
+                //$width = Image::make('public/foo.jpg')->width();
+
+
+
+                $img = Image::make($file->getRealPath());
+                //  dd($img->width(),$img->height());
+                if ($img->width() > 100 || $img->height() > 100) {
+
+                    $img->resize(100, 100, function ($constraint) {
                         $constraint->aspectRatio();
-                    })->save($imagethumb_paths.$fileName);
-                   }else{
-                    $img->save($imagethumb_paths.$fileName);
-                   }
+                    })->save($imagethumb_paths . $fileName);
+                } else {
+                    $img->save($imagethumb_paths . $fileName);
+                }
 
-            $request->file('featimg')->move($image_path, $fileName);            
-            $data->featimg = $fileName;
-            
+                $request->file('featimg')->move($image_path, $fileName);
+                $data->featimg = $fileName;
             }
         }
-            $data->save();
+        $data->save();
 
 
-            $posttocomp = ProductCategory::where('product_id',$id)->get();
-if($posttocomp->isEmpty()){
-    $companies = $request->categories;
-        if($companies != null){
-            foreach($companies as $comp){
+        $posttocomp = ProductCategory::where('product_id', $id)->get();
+        if ($posttocomp->isEmpty()) {
+            $companies = $request->categories;
+            if ($companies != null) {
+                foreach ($companies as $comp) {
 
 
-                $compdatas['product_id'] = $id;
-                $compdatas['category_id'] = $comp;
-                $res = \DB::table('product_categories')->insertGetId($compdatas);
-       
+                    $compdatas['product_id'] = $id;
+                    $compdatas['category_id'] = $comp;
+                    $res = \DB::table('product_categories')->insertGetId($compdatas);
+                }
+            }
+        } else {
+            foreach ($posttocomp as $posttocompany) {
+                ProductCategory::destroy($posttocompany->id);
+            }
+            $companies = $request->categories;
+            if ($companies != null) {
+                foreach ($companies as $comp) {
+
+                    $compdatas['product_id'] = $id;
+                    $compdatas['category_id'] = $comp;
+                    $res = \DB::table('product_categories')->insertGetId($compdatas);
+                }
             }
         }
-
-}else{
-    foreach($posttocomp as $posttocompany){
-        ProductCategory::destroy($posttocompany->id);
-    }
-    $companies = $request->categories;
-    if($companies != null){
-      foreach($companies as $comp){
-
-        $compdatas['product_id'] = $id;
-        $compdatas['category_id'] = $comp;
-        $res = \DB::table('product_categories')->insertGetId($compdatas);
-
-    }
+        Session::flash('success', 'Succesfully done.');
+        return redirect()->route('product.index');
     }
 
-
-}
-            Session::flash('success', 'Succesfully done.');
-            return redirect()->route('product.index');
-    
-            
-            }
-    
 
     /**
      * Remove the specified resource from storage.
@@ -316,21 +297,17 @@ if($posttocomp->isEmpty()){
         //
         $data = Product::find($id);
 
-        $producttocats = ProductCategory::where('product_id',$id)->get();
-if($producttocats->isEmpty() || $producttocats == null){
-  
-
-}else{
-    foreach($producttocats as $posttocomp){
-        ProductCategory::destroy($posttocomp->id);
-    }
-
-}
+        $producttocats = ProductCategory::where('product_id', $id)->get();
+        if ($producttocats->isEmpty() || $producttocats == null) {
+        } else {
+            foreach ($producttocats as $posttocomp) {
+                ProductCategory::destroy($posttocomp->id);
+            }
+        }
 
         $data->delete();
 
         Session::flash('success', 'Succesfully done.');
         return redirect()->route('product.index');
-
     }
 }
